@@ -1,5 +1,7 @@
-from fastapi import Body, FastAPI, Path,Query
-from fastapi.responses import HTMLResponse
+from typing import List
+
+from fastapi import Body, FastAPI, Path, Query
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from esquemas import Movie
 
@@ -34,40 +36,39 @@ movies = [
 def message () :
     return HTMLResponse(content="<h1>Welcome to the Movies API</h1>", status_code=200)
 
-@app.get("/movies", tags=["Movies"])
-def get_movies () :
-     return {"message": "Get all movies",
-            "movies": movies}
+#Json response
+
+@app.get("/movies", tags=["Movies"], response_model=List[Movie])
+def get_movies () -> List[Movie] :
+     return JSONResponse(content=movies, status_code=200)
 
 # Path parameters
 
-@app.get("/movie/{id}", tags=["Movies"])
-def get_movie (id: int = Path(ge=1, le=2000)) :
+@app.get("/movie/{id}", tags=["Movies"], response_model=Movie)
+def get_movie (id: int = Path(ge=1, le=2000)) -> Movie :
     for movie in movies:
         if movie["id"] == id:
-            return {"message": "Get movie by id",
-            "movie": movie}
-    return {"message": "Movie not found"}
+            return JSONResponse(content=movie, status_code=200)
+    return JSONResponse(content={"message": "Movie not found"}, status_code=404)
 
 # Query parameters
 
-@app.get('/movies/', tags=["Movies"])
-def get_movies_by_category( category : str = Query( min_length=1, max_length=20)):
+@app.get('/movies/', tags=["Movies"], response_model=List[Movie])
+def get_movies_by_category( category : str = Query( min_length=1, max_length=20)) -> List[Movie]:
     movies_by_category = []
     for movie in movies:
         if movie['category'] == category:
             movies_by_category.append(movie)
 
     if len(movies_by_category) > 0:
-        return {"message": "Get movies by category",
-                "movies": movies_by_category}
+        return JSONResponse(content=movies_by_category, status_code=200)
     else:
-        return {"message": "Category not found"}
+        return JSONResponse(content={"message": "Category not found"}, status_code=404)
     
 @app.post("/movies", tags=["Movies"])
 def create_movie(movie : Movie):
     movies.append(movie)
-    return {"message": "Create movie"}
+    return JSONResponse(content={"message": "Movie created"}, status_code=201)
 
 @app.put("/movies/{id}", tags=["Movies"])
 def update_movie(movie : Movie, id : int):
@@ -81,9 +82,9 @@ def update_movie(movie : Movie, id : int):
             movie["year"] = movie.year
             movie["rating"] = movie.rating
             movie["category"] = movie.category
-            return {"message": "Update movie", "movie": movie}
+            return JSONResponse(content=movie, status_code=200)
     
-    return {"message": "Movie not found"}
+    return JSONResponse(content={"message": "Movie not found"}, status_code=404)
         
 
 
@@ -92,5 +93,5 @@ def delete_movie(id : int):
     for movie in movies:
         if movie["id"] == id:
             movies.remove(movie)
-            return {"message": "Delete movie", "movie": movie}
-    return {"message": "Movie not found"}
+            return JSONResponse(content={"message": "Movie deleted"}, status_code=200)
+    return JSONResponse(content={"message": "Movie not found"}, status_code=404)
