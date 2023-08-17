@@ -1,5 +1,5 @@
 # FastApi-Python
-First projecto using fastApi, this a api for local movies
+First project using fastApi, this a api for local movies
 
 # Documentation for use fastApi
 
