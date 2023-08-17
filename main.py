@@ -1,4 +1,4 @@
-from fastapi import Body, FastAPI
+from fastapi import Body, FastAPI, Path,Query
 from fastapi.responses import HTMLResponse
 
 from esquemas import Movie
@@ -39,17 +39,20 @@ def get_movies () :
      return {"message": "Get all movies",
             "movies": movies}
 
+# Path parameters
 
 @app.get("/movie/{id}", tags=["Movies"])
-def get_movie (id: int) :
+def get_movie (id: int = Path(ge=1, le=2000)) :
     for movie in movies:
         if movie["id"] == id:
             return {"message": "Get movie by id",
             "movie": movie}
     return {"message": "Movie not found"}
 
+# Query parameters
+
 @app.get('/movies/', tags=["Movies"])
-def get_movies_by_category( category : str):
+def get_movies_by_category( category : str = Query( min_length=1, max_length=20)):
     movies_by_category = []
     for movie in movies:
         if movie['category'] == category:
